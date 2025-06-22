@@ -16,7 +16,7 @@ from controllers.tenant_controller import (
 router = APIRouter()
 
 @router.post(
-    "/tenant/create",
+    "/create",
     response_model=TenantConfigResponse,
     responses={
         409: {"model": ErrorResponse, "description": "Tenant already exists"},
@@ -39,7 +39,7 @@ async def create_tenant_endpoint(
     )
 
 @router.get(
-    "/tenant/config",
+    "/config",
     response_model=TenantConfig,
     responses={404: {"model": ErrorResponse}},
     summary="Get tenant configuration by path tenant",
@@ -56,7 +56,7 @@ async def get_config_endpoint(
     return config
 
 @router.put(
-    "/tenant/config",
+    "/config",
     response_model=TenantConfig,
     responses={404: {"model": ErrorResponse}},
     summary="Update tenant config (Admin/HR only)",
@@ -69,7 +69,7 @@ async def update_config_endpoint(
     return await update_config_controller(tenant, updates.dict(exclude_unset=True))
 
 @router.get(
-    "/tenant/features",
+    "/features",
     response_model=Dict[str, bool],
     responses={404: {"model": ErrorResponse}},
     summary="Get feature flags for current tenant",
@@ -81,7 +81,7 @@ async def get_features_endpoint(
     return await get_features_controller(tenant)
 
 @router.put(
-    "/tenant/features",
+    "/features",
     responses={403: {"model": ErrorResponse}, 404: {"model": ErrorResponse}},
     summary="Update features (HR/Admin only)",
 )
