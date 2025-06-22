@@ -11,21 +11,24 @@ from starlette.responses import FileResponse
 # Load environment variables
 load_dotenv()
 
-# Logging
+# Logging setup
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(level=LOG_LEVEL, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 logger = logging.getLogger("MintTenantCoreApp")
 
-# Config
+# App configuration
 API_PREFIX = os.getenv("API_PREFIX", "/api")
 HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", 8000))
 ALLOWED_ORIGINS = [
     origin.strip()
-    for origin in os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://tenant1.localhost:3000,http://tenant2.localhost:3000").split(",")
+    for origin in os.getenv(
+        "ALLOWED_ORIGINS",
+        "http://localhost:3000,http://tenant1.localhost:3000,http://tenant2.localhost:3000"
+    ).split(",")
 ]
 
-# FastAPI app
+# Create FastAPI app
 app = FastAPI(
     title="MintTenantCore Backend",
     description="Multi-Tenant Role-Based Access Control system using FastAPI",
@@ -34,7 +37,7 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# Static assets
+# Serve static logos
 LOGO_DIR = os.path.join(os.getcwd(), "assets")
 
 @app.get("/static/logos/{filename}", tags=["static"])
@@ -46,7 +49,7 @@ async def get_logo(filename: str):
     response.headers["Access-Control-Allow-Origin"] = "*"
     return response
 
-# CORS
+# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
@@ -55,17 +58,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Routers
+# Register API routers
 from routers.auth_router import router as auth_router
 from routers.tenant_router import router as tenant_router
 
 def register_routers(app: FastAPI):
+    # Auth is global
     app.include_router(auth_router, prefix=f"{API_PREFIX}/auth", tags=["auth"])
+
+    # All tenant-aware endpoints must go under `/api/{tenant}`
     app.include_router(tenant_router, prefix=f"{API_PREFIX}" + "/{tenant}", tags=["tenant"])
 
 register_routers(app)
 
-# Global exception handlers
+# Custom exception handlers
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logger.error(f"Unhandled exception: {exc} | Path: {request.url}")
@@ -82,7 +88,7 @@ async def ping():
     logger.info("Health check called")
     return {"message": "pong"}
 
-# Entry point
+# Uvicorn entry point
 if __name__ == "__main__":
     try:
         logger.info(f"Starting MintTenantCore on {HOST}:{PORT} with log level {LOG_LEVEL}")
