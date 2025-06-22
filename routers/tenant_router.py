@@ -43,22 +43,11 @@ async def create_tenant_endpoint(
     )
 
 
-@router.get(
-    "/{tenant}/config",
-    response_model=TenantConfig,
-    responses={404: {"model": ErrorResponse}},
-    summary="Get tenant configuration by path param",
-    tags=["tenant"]
-)
-async def get_config_endpoint(
-        tenant: str = Path(..., description="Tenant identifier"),
-        request: Request = None
-):
+@router.get("/{tenant}/config")
+async def get_config_endpoint(tenant: str, request: Request):
     config = await get_config_controller(tenant)
-
     if config.get("logo") and not config["logo"].startswith("http"):
         config["logo"] = str(request.base_url).rstrip("/") + config["logo"]
-
     return config
 
 

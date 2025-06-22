@@ -63,8 +63,8 @@ from routers.auth_router import router as auth_router
 from routers.tenant_router import router as tenant_router
 
 def register_routers(app: FastAPI):
-    app.include_router(auth_router, prefix=f"{API_PREFIX}/auth", tags=["auth"])
-    app.include_router(tenant_router, prefix=f"{API_PREFIX}/tenant", tags=["tenant"])
+    app.include_router(tenant_router, prefix="/api/{tenant}", tags=["tenant"])
+    app.include_router(auth_router, prefix="/api/{tenant}/auth", tags=["auth"])
 
 register_routers(app)
 
