@@ -1,5 +1,5 @@
 {
-    "tenant1": {
+    "tenant1-multitenantcore": {
         "features": {
             "Accounting": true,
             "TimeSheet": false,
@@ -13,7 +13,7 @@
         "layout": "side",
         "brandName": "Spicy Core"
     },
-    "tenant2": {
+    "tenant2-multitenantcore": {
         "features": {
             "Accounting": true,
             "TimeSheet": true,
