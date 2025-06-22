@@ -1,0 +1,30 @@
+{
+    "tenant1": {
+        "features": {
+            "Accounting": true,
+            "TimeSheet": false,
+            "Profile Update": false,
+            "Team Announcement": true,
+            "Client Management": true
+        },
+        "primaryColor": "#a06ee1",
+        "secondaryColor": "#ede9fe",
+        "logo": "/static/logos/tenant2.png",
+        "layout": "side",
+        "brandName": "Spicy Core"
+    },
+    "tenant2": {
+        "features": {
+            "Accounting": true,
+            "TimeSheet": true,
+            "Profile Update": true,
+            "Team Announcement": true,
+            "Client Management": true
+        },
+        "primaryColor": "#41aaa8",
+        "secondaryColor": "#dfdfdf",
+        "logo": "/static/logos/logo2.png",
+        "layout": "top",
+        "brandName": "Mint Core"
+    }
+}
