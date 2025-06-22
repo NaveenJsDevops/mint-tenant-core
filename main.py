@@ -21,12 +21,11 @@ logger = logging.getLogger("MintTenantCoreApp")
 
 # --- App Config ---
 API_PREFIX = os.getenv("API_PREFIX", "/api")
-HOST = os.getenv("HOST", "127.0.0.1")
+HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", 8000))
-ALLOWED_ORIGINS = [
-    origin.strip()
-    for origin in os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://tenant1.localhost:3000,http://tenant2.localhost:3000").split(",")
-]
+
+raw_origins = os.getenv("ALLOWED_ORIGINS", "*")
+ALLOWED_ORIGINS = [origin.strip() for origin in raw_origins.split(",")]
 
 # --- FastAPI App ---
 app = FastAPI(
@@ -37,30 +36,28 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
+# --- Static Files (Logo) ---
 LOGO_DIR = os.path.join(os.getcwd(), "assets")
 
 @app.get("/static/logos/{filename}", tags=["static"])
 async def get_logo(filename: str):
     file_path = os.path.join(LOGO_DIR, filename)
-
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Logo not found")
-
     response = FileResponse(file_path, media_type="image/png")
-    # Manually add CORS header
     response.headers["Access-Control-Allow-Origin"] = "*"
     return response
-
 
 # --- CORS Middleware ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    allow_origins=ALLOWED_ORIGINS if ALLOWED_ORIGINS != ["*"] else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-print("CORS ALLOWED_ORIGINS:", ALLOWED_ORIGINS)  # temp debug
+logger.info(f"CORS ALLOWED_ORIGINS: {ALLOWED_ORIGINS}")
+
 # --- Routers ---
 from routers.auth_router import router as auth_router
 from routers.tenant_router import router as tenant_router

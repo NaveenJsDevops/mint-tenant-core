@@ -1,5 +1,5 @@
 from typing import Dict
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Path, Request
 from models.tenant import (
     TenantCreateRequest, TenantConfig, FeatureUpdateRequest,
     TenantConfigResponse, ErrorResponse
@@ -12,10 +12,8 @@ from controllers.tenant_controller import (
     get_features_controller,
     update_features_controller
 )
-from utils.domain import extract_subdomain  # ✅ Assumes defined in utils/domain.py
 
 router = APIRouter()
-
 
 @router.post(
     "/create",
@@ -46,17 +44,16 @@ async def create_tenant_endpoint(
 
 
 @router.get(
-    "/config",
+    "/{tenant}/config",
     response_model=TenantConfig,
     responses={404: {"model": ErrorResponse}},
-    summary="Get tenant configuration by subdomain",
+    summary="Get tenant configuration by path param",
     tags=["tenant"]
 )
-async def get_config_endpoint(request: Request):
-    """
-    Load full config for current tenant (subdomain based).
-    """
-    tenant = extract_subdomain(request)
+async def get_config_endpoint(
+        tenant: str = Path(..., description="Tenant identifier"),
+        request: Request = None
+):
     config = await get_config_controller(tenant)
 
     if config.get("logo") and not config["logo"].startswith("http"):
@@ -66,55 +63,43 @@ async def get_config_endpoint(request: Request):
 
 
 @router.put(
-    "/config",
+    "/{tenant}/config",
     response_model=TenantConfig,
     responses={404: {"model": ErrorResponse}},
     summary="Update tenant config (Admin/HR only)",
     tags=["tenant"]
 )
 async def update_config_endpoint(
-        request: Request,
+        tenant: str,
         updates: TenantCreateRequest,
         current_user: dict = Depends(require_role(["Admin", "HR"]))
 ):
-    """
-    Update configuration for the current tenant.
-    """
-    tenant = extract_subdomain(request)
     return await update_config_controller(tenant, updates.dict(exclude_unset=True))
 
 
 @router.get(
-    "/features",
+    "/{tenant}/features",
     response_model=Dict[str, bool],
     responses={404: {"model": ErrorResponse}},
-    summary="Get feature flags for current tenant",
+    summary="Get feature flags for a tenant",
     tags=["tenant"]
 )
 async def get_features_endpoint(
-        request: Request,
+        tenant: str,
         current_user: dict = Depends(get_current_user)
 ):
-    """
-    Get feature flags for the current tenant (subdomain based).
-    """
-    tenant = extract_subdomain(request)
     return await get_features_controller(tenant)
 
 
 @router.put(
-    "/features",
+    "/{tenant}/features",
     responses={403: {"model": ErrorResponse}, 404: {"model": ErrorResponse}},
-    summary="Update features (HR/Admin only)",
+    summary="Update features for a tenant (HR/Admin only)",
     tags=["tenant"]
 )
 async def update_features_endpoint(
-        request: Request,
+        tenant: str,
         body: FeatureUpdateRequest,
         current_user: dict = Depends(require_role(["HR", "Admin"]))
 ):
-    """
-    Update feature flags for current tenant based on subdomain.
-    """
-    tenant = extract_subdomain(request)
     return await update_features_controller(tenant, body.features)
